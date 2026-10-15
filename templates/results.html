@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Evaluation results | CarbonWise AI{% endblock %}
+{% block content %}
+<section class="flex flex-col justify-between gap-4 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
+  <div><p class="text-xs font-bold uppercase tracking-widest text-emerald-700">Evaluation complete</p><h1 class="mt-2 text-3xl font-extrabold text-slate-900">Carbon emission results</h1><p class="mt-2 text-sm text-slate-500">{{ evaluation.filename }} · {{ evaluation.created_at|date:"M j, Y H:i" }}</p></div>
+  <div class="flex gap-2"><a href="{% url 'report' evaluation.id %}" class="rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white">Download CSV report</a><a href="{% url 'home' %}" class="inline-flex justify-center rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold hover:bg-slate-50">New evaluation</a></div>
+</section>
+<section class="mt-6 grid gap-5 md:grid-cols-2">
+  <div class="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
+    <p class="text-sm font-semibold text-slate-500">Calculated emissions</p>
+    <p class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900">{{ calculated_emission|default:"—" }} <span class="text-base font-semibold text-slate-500">tCO₂e / tonne</span></p>
+    <p class="mt-4 text-xs text-slate-500">Total reported emissions, converted to tonnes CO₂e.</p>
+  </div>
+  <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <p class="text-sm font-semibold text-slate-500">Expected emissions target</p>
+    <p class="mt-3 text-4xl font-extrabold tracking-tight text-slate-900">{{ expected_emission|default:"—" }} <span class="text-base font-semibold text-slate-500">tCO₂e / tonne</span></p>
+    <p class="mt-4 text-sm font-semibold {% if calculated_emission and expected_emission and calculated_emission > expected_emission %}text-amber-700{% else %}text-emerald-700{% endif %}">{{ comparison_status|default:"Comparison status will appear here" }}</p>
+  </div>
+</section>
+<section class="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h2 class="text-xl font-bold text-slate-900">Emission breakdown</h2>
+  <p class="mt-1 text-sm text-slate-500">Scope totals in tonnes of CO₂ equivalent.</p>
+  <div class="mt-5 grid gap-3 sm:grid-cols-3">
+    <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs text-slate-500">Scope 1 · Direct</p><p class="mt-2 text-xl font-bold">{{ scope1_emission|default:"—" }}</p></div>
+    <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs text-slate-500">Scope 2 · Electricity</p><p class="mt-2 text-xl font-bold">{{ scope2_emission|default:"—" }}</p></div>
+    <div class="rounded-xl bg-slate-50 p-4"><p class="text-xs text-slate-500">Scope 3 · Other indirect</p><p class="mt-2 text-xl font-bold">{{ scope3_emission|default:"0" }}</p></div>
+  </div>
+</section>
+{% if evaluation.validation_issues %}<section class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-6"><h2 class="font-bold text-amber-900">Rows needing review</h2><ul class="mt-2 list-disc pl-5 text-sm text-amber-900">{% for issue in evaluation.validation_issues %}<li>{{ issue }}</li>{% endfor %}</ul></section>{% endif %}
+<section class="mt-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 class="text-xl font-bold">Calculated activity rows</h2><div class="mt-4 overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr><th class="p-2">Activity</th><th class="p-2">Scope</th><th class="p-2">kg CO₂e</th><th class="p-2">t CO₂e</th></tr></thead><tbody>{% for row in evaluation.rows %}<tr class="border-t"><td class="p-2">{{ row.activity }}</td><td class="p-2">{{ row.scope|upper }}</td><td class="p-2">{{ row.emissions_kg }}</td><td class="p-2">{{ row.emissions_tonnes }}</td></tr>{% endfor %}</tbody></table></div></section>
+<section class="mt-5 rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
+  <div class="flex items-start gap-3"><span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-xl">✦</span><div><p class="text-xs font-bold uppercase tracking-widest text-emerald-700">RAG guidance</p><h2 class="mt-1 text-xl font-bold text-slate-900">Recommendations and guidelines</h2></div></div>
+  <div class="mt-4 whitespace-pre-line text-sm leading-7 text-slate-700">{{ rag_recommendations|default:"RAG recommendations will be displayed here after your backend retrieves relevant guidance from its knowledge base." }}</div>
+  <p class="mt-5 rounded-xl bg-slate-50 p-3 text-xs leading-5 text-slate-500">Guidance is decision support and should be checked against the applicable official methodology and source documents before formal reporting.</p>
+</section>
+{% endblock %}
